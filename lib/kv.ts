@@ -17,17 +17,17 @@ const VIDEO_PREFIX = "video:"
 export async function getAllVideos(): Promise<Video[]> {
   const ids = await kv.lrange<string>(VIDEOS_KEY, 0, -1)
   if (!ids.length) return []
-  const videos = await kv.mget<Video>(...ids.map(id => `${VIDEO_PREFIX}${id}`))
+  
+  const videos = await Promise.all(
+    ids.map(id => kv.get<Video>(`${VIDEO_PREFIX}${id}`))
+  )
+  
   return videos.filter((v): v is Video => v !== null).sort((a, b) => b.createdAt - a.createdAt)
 }
 
 export async function getVideo(slug: string): Promise<Video | null> {
-  const ids = await kv.lrange<string>(VIDEOS_KEY, 0, -1)
-  for (const id of ids) {
-    const video = await kv.get<Video>(`${VIDEO_PREFIX}${id}`)
-    if (video && video.slug === slug) return video
-  }
-  return null
+  const videos = await getAllVideos()
+  return videos.find(v => v.slug === slug) || null
 }
 
 export async function createVideo(data: Omit<Video, "id" | "createdAt" | "updatedAt">): Promise<Video> {
