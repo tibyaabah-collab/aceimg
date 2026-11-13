@@ -5,7 +5,7 @@ export interface Video {
   slug: string
   videoUrl: string
   thumbnail?: string
-  affiliateUrl: string
+  affiliateUrls: string[]
   description?: string
   createdAt: number
   updatedAt: number

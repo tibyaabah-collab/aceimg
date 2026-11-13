@@ -1,6 +1,7 @@
 import { getVideo } from "@/lib/kv"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -12,6 +13,16 @@ export default async function VideoPage({ params }: Props) {
 
   if (!video) notFound()
 
+  // Pick a random affiliate URL on client side
+  const [selectedUrl, setSelectedUrl] = useState<string>("")
+
+  useEffect(() => {
+    if (video.affiliateUrls.length > 0) {
+      const randomIndex = Math.floor(Math.random() * video.affiliateUrls.length)
+      setSelectedUrl(video.affiliateUrls[randomIndex])
+    }
+  }, [video.affiliateUrls])
+
   return (
     <main className="container">
       <div className="video-wrapper">
@@ -21,9 +32,11 @@ export default async function VideoPage({ params }: Props) {
         </video>
       </div>
       <div style={{marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap'}}>
-        <Link href={video.affiliateUrl} target="_blank" rel="noopener noreferrer" className="btn">
-          Beli / Lihat Produk
-        </Link>
+        {selectedUrl && (
+          <Link href={selectedUrl} target="_blank" rel="noopener noreferrer" className="btn">
+            Beli / Lihat Produk
+          </Link>
+        )}
         <a href="/" className="btn" style={{background: '#334155'}}>
           Kembali
         </a>
@@ -33,6 +46,9 @@ export default async function VideoPage({ params }: Props) {
           {video.description}
         </p>
       )}
+      <p style={{marginTop: '1rem', fontSize: '0.75rem', color: '#64748b'}}>
+        {video.affiliateUrls.length > 1 && `Link affiliate dipilih secara acak dari ${video.affiliateUrls.length} opsi`}
+      </p>
     </main>
   )
 }
